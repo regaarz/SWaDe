@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Monitoring Data Ultrasonic</title>
+    <meta http-equiv="refresh" content="5">
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            margin: 20px auto;
+        }
+        th, td {
+            border: 1px solid #333;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #eee;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 0 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center;">Data Sensor Ultrasonic</h1>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Organik (cm)</th>
+            <th>Anorganik (cm)</th>
+            <th>B3 (cm)</th>
+            <th>Timestamp</th>
+        </tr>
+        {% for row in rows %}
+        <tr>
+            <td>{{ row[0] }}</td>
+            <td>{{ row[1] }}</td>
+            <td>{{ row[2] }}</td>
+            <td>{{ row[3] }}</td>
+            <td>{{ row[4] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <div style="text-align: center; margin: 20px;">
+        {% if page > 1 %}
+        <a href="{{ url_for('view_data', page=page-1) }}">
+            <button>Previous</button>
+        </a>
+        {% else %}
+            <button disabled>Previous</button>
+        {% endif %}
+
+        Halaman {{ page }} dari {{ total_pages }}
+
+        {% if page < total_pages %}
+        <a href="{{ url_for('view_data', page=page+1) }}">
+            <button>Next</button>
+        </a>
+        {% else %}
+            <button disabled>Next</button>
+        {% endif %}
+    </div>
+</body>
+</html>
