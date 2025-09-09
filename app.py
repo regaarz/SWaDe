@@ -4,16 +4,6 @@ import urllib.parse as up
 import os
 
 app = Flask(__name__)
-
-# Konfigurasi koneksi PostgreSQL
-conn = psycopg2.connect(
-    host="localhost",
-    database="Impressive",
-    user="tasklist_user",
-    password="Arzula93."
-)
-
-
 # Ambil DATABASE_URL dari Railway
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
