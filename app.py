@@ -2,21 +2,42 @@ from flask import Flask, request, render_template
 import psycopg2
 import urllib.parse as up
 import os
+import sqlite3
 
 app = Flask(__name__)
-# Ambil DATABASE_URL dari Railway
+
+# ------------------ DATABASE CONNECTION ------------------
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-up.uses_netloc.append("postgres")
-url = up.urlparse(DATABASE_URL)
+conn = None
+if DATABASE_URL:
+    try:
+        up.uses_netloc.append("postgres")
+        url = up.urlparse(DATABASE_URL)
 
-conn = psycopg2.connect(
-    database=url.path[1:],
-    user=url.username,
-    password=url.password,
-    host=url.hostname,
-    port=url.port
-)
+        conn = psycopg2.connect(
+            database=url.path[1:],
+            user=url.username,
+            password=url.password,
+            host=url.hostname,
+            port=url.port
+        )
+        print("✅ Connected to PostgreSQL on Railway")
+    except Exception as e:
+        print("❌ Failed to connect PostgreSQL:", e)
+else:
+    print("⚠️ DATABASE_URL not found, using SQLite for local testing")
+    conn = sqlite3.connect("local.db", check_same_thread=False)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS sensor_tong_1 (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            organik INTEGER,
+            anorganik INTEGER,
+            b3 INTEGER,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    conn.commit()
 
 # ------------------ POST: Simpan data organik, anorganik, b3 ------------------
 @app.route('/send_distance', methods=['POST'])
@@ -26,7 +47,6 @@ def send_distance():
         print("DEBUG raw data:", request.data)
         print("DEBUG parsed json:", data)
 
-        # Validasi data
         if not data or any(key not in data for key in ("organik", "anorganik", "b3")):
             return {"status": "error", "message": "Invalid JSON, expected organik, anorganik, b3"}, 400
 
@@ -36,6 +56,8 @@ def send_distance():
 
         cur = conn.cursor()
         cur.execute(
+            "INSERT INTO sensor_tong_1 (organik, anorganik, b3) VALUES (?, ?, ?)" 
+            if isinstance(conn, sqlite3.Connection) else
             "INSERT INTO sensor_tong_1 (organik, anorganik, b3) VALUES (%s, %s, %s)",
             (organik, anorganik, b3)
         )
@@ -60,6 +82,8 @@ def get_distance():
 
         cur = conn.cursor()
         cur.execute(
+            "SELECT id, organik, anorganik, b3, timestamp FROM sensor_tong_1 ORDER BY timestamp ASC LIMIT ? OFFSET ?" 
+            if isinstance(conn, sqlite3.Connection) else
             "SELECT id, organik, anorganik, b3, timestamp FROM sensor_tong_1 ORDER BY timestamp ASC LIMIT %s OFFSET %s",
             (limit, offset)
         )
@@ -78,7 +102,7 @@ def get_distance():
                 "organik": row[1],
                 "anorganik": row[2],
                 "b3": row[3],
-                "timestamp": row[4].strftime("%Y-%m-%d %H:%M:%S")
+                "timestamp": row[4] if isinstance(conn, sqlite3.Connection) else row[4].strftime("%Y-%m-%d %H:%M:%S")
             })
 
         return {
@@ -91,6 +115,8 @@ def get_distance():
     except Exception as e:
         return {"status": "error", "message": str(e)}, 400
 
+
+# ------------------ GET: Ambil semua data JSON ------------------
 @app.route('/view_all', methods=['GET'])
 def view_all():
     try:
@@ -106,13 +132,14 @@ def view_all():
                 "organik": row[1],
                 "anorganik": row[2],
                 "b3": row[3],
-                "timestamp": row[4].strftime("%Y-%m-%d %H:%M:%S")
+                "timestamp": row[4] if isinstance(conn, sqlite3.Connection) else row[4].strftime("%Y-%m-%d %H:%M:%S")
             })
 
         return {"status": "success", "data": data_list}, 200
 
     except Exception as e:
         return {"status": "error", "message": str(e)}, 400
+
 
 # ------------------ GET: Tampilkan data di HTML ------------------
 @app.route('/view_data', methods=['GET'])
@@ -124,7 +151,9 @@ def view_data():
 
         cur = conn.cursor()
         cur.execute(
-            "SELECT id, organik, anorganik, b3, timestamp FROM sensor_tong_1 ORDER BY timestamp ASC  LIMIT %s OFFSET %s",
+            "SELECT id, organik, anorganik, b3, timestamp FROM sensor_tong_1 ORDER BY timestamp ASC LIMIT ? OFFSET ?" 
+            if isinstance(conn, sqlite3.Connection) else
+            "SELECT id, organik, anorganik, b3, timestamp FROM sensor_tong_1 ORDER BY timestamp ASC LIMIT %s OFFSET %s",
             (limit, offset)
         )
         rows = cur.fetchall()
