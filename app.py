@@ -5,10 +5,7 @@ import os
 
 app = Flask(__name__)
 # Ambil DATABASE_URL dari Railway
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://postgres:wsWATlzEibvjsuhkaTcrfMSHdedyaoXc@shuttle.proxy.rlwy.net:28537/railway"
-)
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 up.uses_netloc.append("postgres")
 url = up.urlparse(DATABASE_URL)
