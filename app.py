@@ -15,7 +15,10 @@ conn = psycopg2.connect(
 
 
 # Ambil DATABASE_URL dari Railway
-DATABASE_URL = os.getenv("postgresql://postgres:wsWATlzEibvjsuhkaTcrfMSHdedyaoXc@shuttle.proxy.rlwy.net:28537/railway")
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql://postgres:wsWATlzEibvjsuhkaTcrfMSHdedyaoXc@shuttle.proxy.rlwy.net:28537/railway"
+)
 
 up.uses_netloc.append("postgres")
 url = up.urlparse(DATABASE_URL)
