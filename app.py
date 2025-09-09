@@ -1,5 +1,6 @@
 from flask import Flask, request, render_template
 import psycopg2
+import urllib.parse as up
 
 app = Flask(__name__)
 
@@ -9,6 +10,21 @@ conn = psycopg2.connect(
     database="Impressive",
     user="tasklist_user",
     password="Arzula93."
+)
+
+
+# Ambil DATABASE_URL dari Railway
+DATABASE_URL = os.getenv("postgresql://postgres:wsWATlzEibvjsuhkaTcrfMSHdedyaoXc@shuttle.proxy.rlwy.net:28537/railway")
+
+up.uses_netloc.append("postgres")
+url = up.urlparse(DATABASE_URL)
+
+conn = psycopg2.connect(
+    database=url.path[1:],
+    user=url.username,
+    password=url.password,
+    host=url.hostname,
+    port=url.port
 )
 
 # ------------------ POST: Simpan data organik, anorganik, b3 ------------------
