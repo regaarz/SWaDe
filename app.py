@@ -170,36 +170,43 @@ def view_data():
 
     except Exception as e:
         return f"Terjadi error: {e}", 500
-@app.route('/view_graph', methods=['GET'])
+
 def view_graph():
     try:
-        # Ambil semua data
         cur = conn.cursor()
         cur.execute("SELECT timestamp, organik, anorganik, b3 FROM sensor_tong_1 ORDER BY timestamp ASC")
         rows = cur.fetchall()
         cur.close()
 
-        # Pisahkan data untuk grafik
-        timestamps = [row[0].strftime("%Y-%m-%d %H:%M:%S") for row in rows]
-        organik = [row[1] for row in rows]
-        anorganik = [row[2] for row in rows]
-        b3 = [row[3] for row in rows]
+        timestamps = []
+        organik = []
+        anorganik = []
+        b3 = []
 
-        # Buat trace untuk Plotly
+        for row in rows:
+            ts = row[0]
+            # Jika ts masih string, ubah ke datetime
+            if isinstance(ts, str):
+                try:
+                    ts = datetime.strptime(ts, "%Y-%m-%d %H:%M:%S")
+                except ValueError:
+                    # fallback jika format berbeda
+                    ts = datetime.strptime(ts[:19], "%Y-%m-%d %H:%M:%S")
+            timestamps.append(ts.strftime("%Y-%m-%d %H:%M:%S"))
+
+            organik.append(row[1])
+            anorganik.append(row[2])
+            b3.append(row[3])
+
         trace1 = go.Scatter(x=timestamps, y=organik, mode='lines+markers', name='Organik')
         trace2 = go.Scatter(x=timestamps, y=anorganik, mode='lines+markers', name='Anorganik')
         trace3 = go.Scatter(x=timestamps, y=b3, mode='lines+markers', name='B3')
 
-        layout = go.Layout(
-            title='Grafik Sensor Tong Sampah',
-            xaxis=dict(title='Timestamp'),
-            yaxis=dict(title='Nilai'),
-            hovermode='closest'
-        )
-        fig = go.Figure(data=[trace1, trace2, trace3], layout=layout)
+        fig = go.Figure(data=[trace1, trace2, trace3])
+        fig.update_layout(title='Grafik Sensor Tong Sampah', xaxis_title='Timestamp', yaxis_title='Nilai', hovermode='closest')
+
         graph_html = pyo.plot(fig, output_type='div', include_plotlyjs=True)
 
-        # Render di template HTML
         return render_template("graph.html", graph_html=graph_html)
 
     except Exception as e:
