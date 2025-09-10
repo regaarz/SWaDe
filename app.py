@@ -170,7 +170,8 @@ def view_data():
 
     except Exception as e:
         return f"Terjadi error: {e}", 500
-
+        
+@app.route('/view_graph', methods=['GET'])
 def view_graph():
     try:
         cur = conn.cursor()
