@@ -3,6 +3,8 @@ import psycopg2
 import urllib.parse as up
 import os
 import sqlite3
+import plotly.graph_objs as go
+import plotly.offline as pyo
 
 app = Flask(__name__)
 
@@ -168,6 +170,41 @@ def view_data():
 
     except Exception as e:
         return f"Terjadi error: {e}", 500
+@app.route('/view_graph', methods=['GET'])
+def view_graph():
+    try:
+        # Ambil semua data
+        cur = conn.cursor()
+        cur.execute("SELECT timestamp, organik, anorganik, b3 FROM sensor_tong_1 ORDER BY timestamp ASC")
+        rows = cur.fetchall()
+        cur.close()
+
+        # Pisahkan data untuk grafik
+        timestamps = [row[0].strftime("%Y-%m-%d %H:%M:%S") for row in rows]
+        organik = [row[1] for row in rows]
+        anorganik = [row[2] for row in rows]
+        b3 = [row[3] for row in rows]
+
+        # Buat trace untuk Plotly
+        trace1 = go.Scatter(x=timestamps, y=organik, mode='lines+markers', name='Organik')
+        trace2 = go.Scatter(x=timestamps, y=anorganik, mode='lines+markers', name='Anorganik')
+        trace3 = go.Scatter(x=timestamps, y=b3, mode='lines+markers', name='B3')
+
+        layout = go.Layout(
+            title='Grafik Sensor Tong Sampah',
+            xaxis=dict(title='Timestamp'),
+            yaxis=dict(title='Nilai'),
+            hovermode='closest'
+        )
+        fig = go.Figure(data=[trace1, trace2, trace3], layout=layout)
+        graph_html = pyo.plot(fig, output_type='div', include_plotlyjs=True)
+
+        # Render di template HTML
+        return render_template("graph.html", graph_html=graph_html)
+
+    except Exception as e:
+        return f"Terjadi error: {e}", 500
+
 
 
 if __name__ == '__main__':
