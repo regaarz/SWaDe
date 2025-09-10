@@ -5,24 +5,11 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #1b5e20; /* hijau tua untuk seluruh halaman */
-            color: white; /* teks default agar terlihat di background */
-            margin: 0;
-            padding: 0;
-        }
-        h1 {
-            text-align: center;
-            color: #a5d6a7; /* hijau muda untuk judul agar kontras */
-            margin-top: 20px;
         }
         table {
             border-collapse: collapse;
             width: 80%;
             margin: 20px auto;
-            background-color: #2e7d32; /* hijau tua untuk tabel */
-            color: white; /* teks tabel */
-            border-radius: 8px;
-            overflow: hidden;
         }
         th, td {
             border: 1px solid #333;
@@ -30,21 +17,21 @@
             text-align: center;
         }
         th {
-            background-color: #2e7d32; /* hijau tua header tabel */
+            background-color: #2e7d32; /* hijau tua */
             color: white;
         }
         tr:nth-child(even) {
-            background-color: #388e3c; /* hijau sedikit lebih terang untuk baris genap */
+            background-color: #e8f5e9; /* hijau muda */
         }
         tr:hover {
-            background-color: #4caf50; /* hijau highlight saat hover */
+            background-color: #c8e6c9; /* hijau highlight saat hover */
         }
         button {
             padding: 8px 16px;
             margin: 0 10px;
             font-size: 16px;
             cursor: pointer;
-            background-color: #4caf50; /* hijau tombol */
+            background-color: #4caf50; /* hijau */
             color: white;
             border: none;
             border-radius: 4px;
@@ -56,10 +43,6 @@
             background-color: #ccc;
             cursor: not-allowed;
             color: #666;
-        }
-        .pagination {
-            text-align: center;
-            margin: 20px;
         }
     </style>
 </head>
@@ -83,7 +66,7 @@
         {% endfor %}
     </table>
 
-    <div class="pagination">
+    <div style="text-align: center; margin: 20px;">
         {% if page > 1 %}
         <a href="{{ url_for('view_data', page=page-1) }}">
             <button>Previous</button>
